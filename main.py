@@ -6,7 +6,7 @@ BORDER = 1
 DATA_URL = "https://madteddy-one.vercel.app/StoryBlog"
 LOGO_PATH = "logo.ico"
 OUTPUT_PATH = "madteddy_with_watermark.png"
-LOGO_SIZE = (111, 111)
+LOGO_SIZE = (100, 100)
 WATERMARK_TEXT = "Madteddy.co"
 WATERMARK_OPACITY = 255  
 WATERMARK_FONT_SIZE = 8
@@ -24,15 +24,16 @@ qr.make(fit=True)
 # Create blank image for QR code
 qr_matrix = qr.modules
 qr_size = (len(qr_matrix) + BORDER * 2) * BOX_SIZE
-img = Image.new("RGBA", (qr_size, qr_size), "black")
+img = Image.new("RGBA", (qr_size, qr_size), "white")
 draw = ImageDraw.Draw(img)
 
 FINDER_OUTER = 7 * BOX_SIZE
 
-# draw finder pattern
+
+# Draw finder pattern
 def draw_finder_pattern(draw, top_left_x, top_left_y):
     offsets = [0, BOX_SIZE, 2 * BOX_SIZE]
-    colors = ["yellow", "black", "black"]
+    colors = ["yellow", "white", "black"]
     for offset, color in zip(offsets, colors):
         draw.ellipse(
             [
@@ -43,6 +44,7 @@ def draw_finder_pattern(draw, top_left_x, top_left_y):
             ],
             fill=color,
         )
+
 
 # Draw the three corner finder patterns
 corner_positions = [
@@ -63,8 +65,7 @@ for y, row in enumerate(qr_matrix):
             y0 = (y + BORDER) * BOX_SIZE
             x1 = x0 + BOX_SIZE
             y1 = y0 + BOX_SIZE
-            draw.ellipse([x0, y0, x1, y1], fill="yellow")
-
+            draw.ellipse([x0, y0, x1, y1], fill="black")
 
 # Overlay logo (cropped to round shape)
 overlay_image = Image.open(LOGO_PATH).convert("RGBA").resize(LOGO_SIZE)
@@ -72,13 +73,13 @@ overlay_image = Image.open(LOGO_PATH).convert("RGBA").resize(LOGO_SIZE)
 # Create a circular mask
 mask = Image.new("L", LOGO_SIZE, 0)  # Create a black mask (transparent)
 draw_mask = ImageDraw.Draw(mask)
-
 # Draw a white circle on the mask
 draw_mask.ellipse((0, 0, LOGO_SIZE[0], LOGO_SIZE[1]), fill=255)
 
 # Apply the mask to the logo image
 circular_logo = Image.composite(overlay_image, Image.new(
     "RGBA", LOGO_SIZE, (0, 0, 0, 0)), mask)
+
 
 # Position for the overlay
 overlay_position = (
@@ -91,20 +92,22 @@ img.paste(circular_logo, overlay_position, circular_logo)
 
 # Add watermark
 watermark_font = ImageFont.truetype(
-    "arial.ttf", WATERMARK_FONT_SIZE)  
+    "arial.ttf", WATERMARK_FONT_SIZE)  # Adjust font as needed
 watermark_bbox = draw.textbbox(
-    (0, 0), WATERMARK_TEXT, font=watermark_font) 
+    (0, 0), WATERMARK_TEXT, font=watermark_font)  # Get text bounding box
 watermark_width = watermark_bbox[2] - watermark_bbox[0]
 watermark_height = watermark_bbox[3] - watermark_bbox[1]
+
 watermark_position = (
-    (qr_size - watermark_width) // 35, 
-    qr_size - watermark_height - 1.5, 
+    (qr_size - watermark_width) // 35,  # left with
+    qr_size - watermark_height - 1.5,   # Bottom with padding
 )
 draw.text(
     watermark_position,
     WATERMARK_TEXT,
-    fill=(255, 255, 255, WATERMARK_OPACITY),   
+    fill=(0, 10, 0, WATERMARK_OPACITY),   
     font=watermark_font,
 )
 
+# Save the final image
 img.save(OUTPUT_PATH, "PNG")
